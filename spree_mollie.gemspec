@@ -15,8 +15,7 @@ Gem::Specification.new do |s|
   #s.test_files  = `git ls-files -- {test,spec,features}/*`.split("\n")
   s.require_path = 'lib'
   s.requirements << 'none'
-
-  s.add_dependency 'spree_core', '~> 3.0.0'
+  
   s.add_dependency 'mollie-api-ruby'
 
   s.add_development_dependency 'capybara', '~> 2.1'
