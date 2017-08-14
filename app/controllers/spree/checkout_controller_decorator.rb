@@ -13,7 +13,7 @@ module Spree
       payment = @order.payments.valid.where(payment_method: mollie_payment_method).first
 
       begin
-        mollie = Mollie::API::Client.new
+        mollie = Mollie::API::Client.new.(MOLLIE_API_KEY)
         mollie.setApiKey mollie_payment_method.preferred_api_key
         mollie_payment = mollie.payments.get(payment.source.transaction_id) if payment
 
