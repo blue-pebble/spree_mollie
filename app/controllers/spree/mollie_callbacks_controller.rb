@@ -5,14 +5,13 @@ module Spree
     def show
       order = Order.find_by(number: params[:id]) || raise(ActiveRecord::RecordNotFound)
 
-      mollie_payment_method = PaymentMethod.where(type: "Spree::PaymentMethod::MolliePayment").first
+      mollie_payment_method = PaymentMethod.where(type: "Spree::Gateway::MolliePayment").first
       payment = order.payments.valid.where(payment_method_id: mollie_payment_method.id).first
 
       # a payment must be present before we can continue
       (redirect_to edit_order_checkout_url(order, order.state) and return) unless mollie_payment_method && payment
 
-      mollie = Mollie::API::Client.new
-      mollie.setApiKey mollie_payment_method.preferred_api_key
+      mollie = Mollie::API::Client.new(MOLLIE_API_KEY)
       mollie_payment = mollie.payments.get(payment.source.transaction_id)
 
       process_payment_for_order(payment, mollie_payment, order)
@@ -29,13 +28,12 @@ module Spree
 
     # Each time the payment status changes, this callback is called in background
     def update
-      mollie_payment_method = PaymentMethod.where(type: "Spree::PaymentMethod::MolliePayment").first
+      mollie_payment_method = PaymentMethod.where(type: "Spree::Gateway::MolliePayment").first
       return unless mollie_payment_method
 
       if mollie_payment_method && params['id']
         begin
-          mollie = Mollie::API::Client.new
-          mollie.setApiKey mollie_payment_method.preferred_api_key
+          mollie = Mollie::API::Client.new(MOLLIE_API_KEY)
           mollie_payment = mollie.payments.get params['id']
 
           if mollie_payment
@@ -84,13 +82,13 @@ module Spree
           order.finalize!
 
           payment.source.update_attributes({
-            :paid_at => mollie_payment.paidDatetime,
+            :paid_at => mollie_payment.paid_datetime,
           })
           payment.complete!
         when "cancelled" # Your customer has cancelled the payment.
           payment.started_processing
           payment.source.update_attributes({
-            :cancelled_at => mollie_payment.cancelledDatetime,
+            :cancelled_at => mollie_payment.cancelled_datetime,
           })
           flash.notice = Spree.t(:payment_has_been_cancelled)
           payment.failure!
@@ -100,7 +98,7 @@ module Spree
         when "expired" # The payment has expired, for example, your customer has closed the payment screen.
           payment.started_processing
           payment.source.update_attributes({
-            :expired_at => mollie_payment.expiredDatetime,
+            :expired_at => mollie_payment.expired_datetime,
           })
           flash.notice = Spree.t(:payment_has_expired)
           payment.failure!
