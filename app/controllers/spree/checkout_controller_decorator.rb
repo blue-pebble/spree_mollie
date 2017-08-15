@@ -13,7 +13,7 @@ module Spree
       payment = @order.payments.valid.where(payment_method: mollie_payment_method).first
 
       begin
-        mollie = Mollie::API::Client.new.(MOLLIE_API_KEY)
+        mollie = Mollie::API::Client.new(MOLLIE_API_KEY)
         mollie_payment = mollie.payments.get(payment.source.transaction_id) if payment
 
         unless payment && mollie_payment && ['open','pending'].include?(mollie_payment.status)
