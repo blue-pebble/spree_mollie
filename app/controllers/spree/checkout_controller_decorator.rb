@@ -21,7 +21,7 @@ module Spree
             :amount       => @order.total,
             :description  => "Payment for order #{@order.number}",
             :redirect_url  => mollie_url(@order, :utm_nooverride => 1), # ensure that transactions are credited to the original traffic source
-            :webhook_url => mollie_url(@order, :utm_nooverride => 1),
+            # :webhook_url => mollie_url(@order, :utm_nooverride => 1),
             :method       => params[:order][:payments_attributes][0][:payment_method_id],
             # :billingEmail => @order.email, # when email is provided, Mollie sends an email with payment details (e.g. for banktransfer)
             :metadata     => {
