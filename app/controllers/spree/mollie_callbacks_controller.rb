@@ -5,7 +5,7 @@ module Spree
     def show
       order = Order.find_by(number: params[:id]) || raise(ActiveRecord::RecordNotFound)
 
-      mollie_payment_method = PaymentMethod.where(type: "Spree::Gateway::MolliePayment").first
+      mollie_payment_method = PaymentMethod.where(type: "Spree::Gateway::Mollie").first
       payment = order.payments.valid.where(payment_method_id: mollie_payment_method.id).first
 
       # a payment must be present before we can continue
@@ -28,7 +28,7 @@ module Spree
 
     # Each time the payment status changes, this callback is called in background
     def update
-      mollie_payment_method = PaymentMethod.where(type: "Spree::Gateway::MolliePayment").first
+      mollie_payment_method = PaymentMethod.where(type: "Spree::Gateway::Mollie").first
       return unless mollie_payment_method
 
       if mollie_payment_method && params['id']
