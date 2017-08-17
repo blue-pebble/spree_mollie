@@ -9,7 +9,7 @@ module Spree
       return unless params[:state] == "payment"
 
       # check to see if there is an existing mollie payment pending
-      mollie_payment_method = PaymentMethod.find_by(type: 'Spree::Gateway::MolliePayment')
+      mollie_payment_method = PaymentMethod.find_by(type: 'Spree::Gateway::Mollie')
       payment = @order.payments.valid.where(payment_method: mollie_payment_method).first
 
       begin
