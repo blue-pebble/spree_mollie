@@ -1,4 +1,4 @@
-require "Mollie/API/Client"
+require "mollie/api/client"
 module Spree 
   class Gateway::Mollie < Gateway
     preference :partner_id, :string, default: "test_dHar4XY7LxsDOtmnkVtjNVWXLSlXsM"
