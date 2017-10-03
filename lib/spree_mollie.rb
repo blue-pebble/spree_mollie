@@ -1,3 +1,3 @@
 require 'spree_core'
-require 'Mollie/API/Client'
+require 'mollie/api/client'
 require 'spree_mollie/engine'
