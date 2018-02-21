@@ -11,7 +11,7 @@ Installation
 Add spree_mollie to your Gemfile:
 
 ```ruby
-gem 'spree_mollie', :git => 'https://github.com/javereec/spree_mollie.git', :branch => '2-2-stable'
+gem 'spree_mollie', git: 'https://github.com/blue-pebble/spree_mollie', branch: '3-2-stable'
 ```
 
 Bundle your dependencies and run the installation generator:

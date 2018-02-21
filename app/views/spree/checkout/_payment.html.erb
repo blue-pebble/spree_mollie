@@ -16,7 +16,7 @@
           <strong><%= Spree.t(:mollie_mistercash) %></strong>
           <%= Spree.t(:mollie_mistercash_description) %>
         </label>
-      </p>      
+      </p>
       <p>
         <label>
           <%= radio_button_tag "order[payments_attributes][][payment_method_id]", "creditcard" %>
@@ -37,7 +37,7 @@
       <%= form.label :coupon_code %><br />
       <%= form.text_field :coupon_code %>
     </p>
-    <img src="https://www.mollie.nl/images/badge-betaling-medium.png" alt="Powered By Mollie">
+    <!-- <img src="https://www.mollie.nl/images/badge-betaling-medium.png" alt="Powered By Mollie"> -->
 </fieldset>
 
 <br class="space" />

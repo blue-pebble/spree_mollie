@@ -3,14 +3,14 @@ module Spree
     preference :api_key, :string
 
     def cancel(response); end
-    
+
     def capture(*args)
       ActiveMerchant::Billing::Response.new(true, "", {}, {})
     end
 
     def credit(money, credit_card, options = {})
       begin
-        mollie = Mollie::API::Client.new
+        mollie = Mollie::Client.new
         mollie.setApiKey preferred_api_key
 
         if options[:originator].class == Spree::Refund
@@ -24,19 +24,19 @@ module Spree
 
         # Only possible to refund some methods, otherwise return dummy
         unless ['banktransfer','creditcard','ideal','mistercash',].include? payment.method
-          return ActiveMerchant::Billing::Response.new(true, "Manual refund required", {}, {:authorization => '123456'})
+          return ActiveMerchant::Billing::Response.new(true, "Manual refund required", {}, {authorization: '123456'})
         end
 
         # Refund the payment for the amount specified in the refund
         refund = mollie.payments_refunds.with(payment).create(amount: money / 100)
 
-        return ActiveMerchant::Billing::Response.new(true, "Mollie refund called", {}, {:authorization => refund.id})
+        return ActiveMerchant::Billing::Response.new(true, "Mollie refund called", {}, {authorization: refund.id})
 
-      rescue Mollie::API::Exception => e
-        logger.debug "Mollie API call failed: " << (CGI.escapeHTML e.message)
+      rescue mollie::Exception => e
+        Rails.logger.warn "Mollie API call failed: #{e.message}"
         ActiveMerchant::Billing::Response.new(false, [Spree.t(:mollie_processing_error), e.message].join(' '), {}, {})
       end
-      
+
     end
 
     def void(*args)

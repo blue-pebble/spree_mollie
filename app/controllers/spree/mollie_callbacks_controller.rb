@@ -9,12 +9,12 @@ module Spree
       payment = order.payments.valid.where(payment_method_id: mollie_payment_method.id).first
 
       # a payment must be present before we can continue
-      (redirect_to edit_order_checkout_url(order, order.state) and return) unless mollie_payment_method && payment
+      (redirect_to spree.edit_order_url(order, order.state) and return) unless mollie_payment_method && payment
 
-      mollie = Mollie::API::Client.new
-      mollie.setApiKey mollie_payment_method.preferred_api_key
-      mollie_payment = mollie.payments.get(payment.source.transaction_id)
+      api_key =  mollie_payment_method.preferred_api_key
 
+      mollie = Mollie::Client.new(api_key)
+      mollie_payment = Mollie::Payment.get(payment.source.transaction_id)
       process_payment_for_order(payment, mollie_payment, order)
 
       if order.completed?
@@ -23,7 +23,7 @@ module Spree
         flash[:order_completed] = true
         redirect_to spree.order_path(order)
       else
-        redirect_to edit_order_checkout_url(order, order.state)
+        redirect_to spree.edit_order_url(order, order.state)
       end
     end
 
@@ -34,7 +34,7 @@ module Spree
 
       if mollie_payment_method && params['id']
         begin
-          mollie = Mollie::API::Client.new
+          mollie = Mollie::Client.new
           mollie.setApiKey mollie_payment_method.preferred_api_key
           mollie_payment = mollie.payments.get params['id']
 
@@ -49,8 +49,8 @@ module Spree
               logger.error "Order with reference #{mollie_payment.metadata.order} not found. Payment update not possible."
             end
           end
-        rescue Mollie::API::Exception => e
-          logger.debug "Mollie API call failed: " << (CGI.escapeHTML e.message)
+        rescue Mollie::Exception => e
+          Rails.logger.warn "Mollie API call failed: #{e.message}"
         end
       end
 
@@ -65,16 +65,16 @@ module Spree
       payment.log_entries.create!(:details => response.to_yaml)
 
       payment.source.update_attributes({
-        :method => mollie_payment.method,
-        :status => mollie_payment.status
+        method: mollie_payment.method,
+        status: mollie_payment.status
       })
       unless payment.completed?
         case mollie_payment.status
         when "open" # The payment has been created, but no other status has been reached yet.
-          order.update_attributes({:state => "complete", :completed_at => Time.now})
+          order.update_attributes({state: "complete", completed_at: Time.now})
           order.finalize!
         when "paid", "paidout" # The payment has been paid for. The payment has been paid for and we have transferred the sum to your bank account.
-          order.update_attributes({:state => "complete", :completed_at => Time.now})
+          order.update_attributes({state: "complete", completed_at: Time.now})
           until order.state == "complete"
             if order.next!
               order.update!
@@ -84,13 +84,13 @@ module Spree
           order.finalize!
 
           payment.source.update_attributes({
-            :paid_at => mollie_payment.paidDatetime,
+            paid_at: mollie_payment.paid_datetime,
           })
           payment.complete!
         when "cancelled" # Your customer has cancelled the payment.
           payment.started_processing
           payment.source.update_attributes({
-            :cancelled_at => mollie_payment.cancelledDatetime,
+            cancelled_at: mollie_payment.cancelled_datetime,
           })
           flash.notice = Spree.t(:payment_has_been_cancelled)
           payment.failure!
@@ -100,7 +100,7 @@ module Spree
         when "expired" # The payment has expired, for example, your customer has closed the payment screen.
           payment.started_processing
           payment.source.update_attributes({
-            :expired_at => mollie_payment.expiredDatetime,
+            expired_at: mollie_payment.expired_datetime,
           })
           flash.notice = Spree.t(:payment_has_expired)
           payment.failure!

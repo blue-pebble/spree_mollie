@@ -1,58 +1,66 @@
 module Spree
   CheckoutController.class_eval do
-    before_filter :redirect_to_mollie, :only => [:update]
+    prepend_before_filter :redirect_to_mollie, only: [:update]
 
     private
 
     def redirect_to_mollie
+      @order = current_order
       return if @order.completed? || @order.outstanding_balance == 0
       return unless params[:state] == "payment"
+
 
       # check to see if there is an existing mollie payment pending
       mollie_payment_method = PaymentMethod.find_by(type: 'Spree::PaymentMethod::MolliePayment')
       payment = @order.payments.valid.where(payment_method: mollie_payment_method).first
 
       begin
-        mollie = Mollie::API::Client.new
-        mollie.setApiKey mollie_payment_method.preferred_api_key
-        mollie_payment = mollie.payments.get(payment.source.transaction_id) if payment
+        api_key =  mollie_payment_method.preferred_api_key
+
+        mollie = Mollie::Client.new(api_key)
+        mollie_payment = payment && payment.source ? Mollie::Payment.get(payment.source.transaction_id) : nil
+
 
         unless payment && mollie_payment && ['open','pending'].include?(mollie_payment.status)
-          mollie_payment = mollie.payments.create \
-            :amount       => @order.total,
-            :description  => "Payment for order #{@order.number}",
-            :redirectUrl  => mollie_url(@order, :utm_nooverride => 1), # ensure that transactions are credited to the original traffic source
-            :method       => params[:order][:payments_attributes][0][:payment_method_id],
+          mollie_payment = Mollie::Payment.create(
+            amount:        @order.total,
+            description:   "Payment for order #{@order.number}",
+            redirect_url:  mollie_url(@order, utm_nooverride: 1), # ensure that transactions are credited to the original traffic source
+            webhook_url:   Rails.env.development? ? nil : mollie_callback_url,
+            #webhook_url:  'https://webshop.example.org/mollie-webhook/'
+
             # :billingEmail => @order.email, # when email is provided, Mollie sends an email with payment details (e.g. for banktransfer)
-            :metadata     => {
-              :order => @order.number
-            }
+            metadata: { order: @order.number },
+
+            # method:        params[:order][:payments_attributes][0][:payment_method_id],
+            testmode: true
+          )
 
           # Create mollie payment & source
           source_params = {
-            :transaction_id => mollie_payment.id,
-            :mode => mollie_payment.mode,
-            :status => mollie_payment.status,
-            :amount => mollie_payment.amount,
-            :description => mollie_payment.description,
-            :created_at => mollie_payment.createdDatetime
+            transaction_id: mollie_payment.id,
+            mode:           mollie_payment.mode,
+            status:         mollie_payment.status,
+            amount:         mollie_payment.amount,
+            description:    mollie_payment.description,
+            created_at:     mollie_payment.created_datetime
           }
           if mollie_payment.method == 'banktransfer'
-            source_params[:banktransfer_bank_name] = mollie_payment.details.bankName
-            source_params[:banktransfer_bank_account] = mollie_payment.details.bankAccount
-            source_params[:banktransfer_bank_bic] = mollie_payment.details.bankBic
-            source_params[:banktransfer_transfer_reference] = mollie_payment.details.transferReference
+            source_params[:banktransfer_bank_name] = mollie_payment.details.bank_name
+            source_params[:banktransfer_bank_account] = mollie_payment.details.bank_account
+            source_params[:banktransfer_bank_bic] = mollie_payment.details.bank_bic
+            source_params[:banktransfer_transfer_reference] = mollie_payment.details.transfer_reference
           end
-          payment = @order.payments.create!({
-            :source => Spree::MollieCheckout.create(source_params),
-            :amount => @order.total,
-            :payment_method => mollie_payment_method
-          })
+          payment = @order.payments.create!(
+            source:         Spree::MollieCheckout.create(source_params),
+            amount:         @order.total,
+            payment_method: mollie_payment_method
+          )
         end
-
-        redirect_to mollie_payment.getPaymentUrl and return
-      rescue Mollie::API::Exception => e
-        logger.debug << "Mollie API call failed: " << (CGI.escapeHTML e.message)
+        redirect_to mollie_payment.payment_url and return
+      rescue Mollie::Exception => e
+        Rails.logger.warn "Mollie API call failed: #{e.message}"
+        raise e
       end
     end
   end
