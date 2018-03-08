@@ -1,0 +1,17 @@
+# Sample localization file for English. Add more files in this directory for other locales.
+# See https://github.com/svenfuchs/rails-i18n/tree/master/rails%2Flocale for starting points.
+
+en:
+  spree:
+    mollie: Mollie
+    mollie_banktransfer: Bankbetaling
+    mollie_banktransfer_description: U ontvangt instructies voor handmatige betaling
+    mollie_creditcard: Creditcard
+    mollie_creditcard_description: Betaal snel en eenvoudig
+    mollie_processing_error: Er ging iets met het verwerken van de betaling/terugbetaling
+    mollie_ideal: iDEAL
+    mollie_ideal_description: Betalen met iDEAL
+    mollie_mistercash: Bankcontact/Mister Cash
+    mollie_mistercash_description: Betalen met Bankcontact/Mister Cash
+    payment_has_expired: ee betaling is verlopen.
+    payment_is_pending: De betaling is in behandling. De order wordt verwerkt op het moment dat de betaling is ontvangen.

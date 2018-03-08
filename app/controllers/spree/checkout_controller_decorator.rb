@@ -7,13 +7,19 @@ module Spree
     def redirect_to_mollie
       @order = current_order
       return if @order.completed? || @order.outstanding_balance == 0
-      return unless params[:state] == "payment"
+      # return unless params[:state] == "payment"
+
+      return unless params[:state] == 'confirm'  && current_order
+
+      payment = current_order.unprocessed_payments.first
+      payment_method = payment.payment_method if payment
+      return unless payment_method.try(:type) == 'Spree::PaymentMethod::MolliePayment'
 
 
       # check to see if there is an existing mollie payment pending
-      mollie_payment_method = PaymentMethod.find_by(type: 'Spree::PaymentMethod::MolliePayment')
-      payment = @order.payments.valid.where(payment_method: mollie_payment_method).first
-
+      # mollie_payment_method = PaymentMethod.find_by(type: 'Spree::PaymentMethod::MolliePayment')
+      # payment = @order.payments.valid.where(payment_method: mollie_payment_method).first
+      mollie_payment_method = payment_method
       begin
         api_key =  mollie_payment_method.preferred_api_key
 
@@ -24,16 +30,17 @@ module Spree
         unless payment && mollie_payment && ['open','pending'].include?(mollie_payment.status)
           mollie_payment = Mollie::Payment.create(
             amount:        @order.total,
-            description:   "Payment for order #{@order.number}",
+            description:   SpreeMollie.payment_subject.gsub('%{order}',  @order.number ),
             redirect_url:  mollie_url(@order, utm_nooverride: 1), # ensure that transactions are credited to the original traffic source
             webhook_url:   Rails.env.development? ? nil : mollie_callback_url,
             #webhook_url:  'https://webshop.example.org/mollie-webhook/'
+            locale:        SpreeMollie.locale,
 
             # :billingEmail => @order.email, # when email is provided, Mollie sends an email with payment details (e.g. for banktransfer)
             metadata: { order: @order.number },
 
             # method:        params[:order][:payments_attributes][0][:payment_method_id],
-            testmode: true
+            # testmode: true
           )
 
           # Create mollie payment & source
