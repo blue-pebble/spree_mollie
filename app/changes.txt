@@ -1,3 +1,4 @@
+- (2018-03-14) Fix with API key issue (updated Mollie client interface)
 - (2018-03-08) Added configuration option SpreeMollie.payment_subject to change the subject of the payment
 - (2018-03-08) Added configuration option SpreeMollie.locale to change the locale for a website
 - (2018-03-08) Moved the paymentprocess AFTER the confirmation screen

@@ -10,8 +10,7 @@ module Spree
 
     def credit(money, credit_card, options = {})
       begin
-        mollie = Mollie::Client.new
-        mollie.setApiKey preferred_api_key
+        mollie = Mollie::Client.new(preferred_api_key)
 
         if options[:originator].class == Spree::Refund
           original_payment = options[:originator].payment
