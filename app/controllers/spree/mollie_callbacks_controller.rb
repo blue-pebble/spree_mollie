@@ -35,7 +35,7 @@ module Spree
       if mollie_payment_method && params['id']
         begin
           mollie = Mollie::Client.new(mollie_payment_method.preferred_api_key)
-          mollie_payment = mollie.payments.get params['id']
+          mollie_payment = Mollie::Payment.get(params['id'])
 
           if mollie_payment
             # retrieve order via metadata mollie payment
