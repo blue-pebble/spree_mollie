@@ -104,7 +104,7 @@ module Spree
           flash.notice = Spree.t(:payment_has_expired)
           payment.failure!
         else
-          raise "Unexpected payment status"
+          raise "Unexpected payment status #{mollie_payment.status}"
         end
         payment.save # trigger updates (e.g. order)
       end
