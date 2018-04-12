@@ -73,10 +73,9 @@ module Spree
           order.update_attributes({state: "complete", completed_at: Time.now})
           order.finalize!
         when "paid", "paidout" # The payment has been paid for. The payment has been paid for and we have transferred the sum to your bank account.
-          order.update_attributes({state: "complete", completed_at: Time.now})
-          until order.state == "complete"
-            if order.next!
-              order.update!
+          # order.update_attributes({state: "complete", completed_at: Time.now})
+          if !order.completed?
+            while order.next!
               state_callback(:after)
             end
           end
