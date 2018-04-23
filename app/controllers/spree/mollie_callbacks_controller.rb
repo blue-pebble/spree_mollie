@@ -76,7 +76,7 @@ module Spree
           # order.update_attributes({state: "complete", completed_at: Time.now})
           if !order.completed?
             while order.next!
-              state_callback(:after)
+              #state_callback(:after)
             end
           end
           order.finalize!

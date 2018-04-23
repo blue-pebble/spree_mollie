@@ -1,3 +1,4 @@
+- (2018-04-23) Fix for crash undefined method `state_callback' 'for'
 - (2018-04-12) Changed mollie payment complete loop, so callbacks are triggered
 - (2018-03-14) Fix with API key issue (updated Mollie client interface)
 - (2018-03-08) Added configuration option SpreeMollie.payment_subject to change the subject of the payment
