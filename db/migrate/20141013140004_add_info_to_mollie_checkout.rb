@@ -1,4 +1,4 @@
-class AddInfoToMollieCheckout < ActiveRecord::Migration
+class AddInfoToMollieCheckout < ActiveRecord::Migration[4.2]
   def change
     change_table :spree_mollie_checkouts do |t|
       t.string :banktransfer_bank_name

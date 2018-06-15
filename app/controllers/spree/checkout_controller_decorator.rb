@@ -1,6 +1,6 @@
 module Spree
   CheckoutController.class_eval do
-    prepend_before_filter :redirect_to_mollie, only: [:update]
+    prepend_before_action :redirect_to_mollie, only: [:update]
 
     private
 

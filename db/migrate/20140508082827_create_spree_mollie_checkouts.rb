@@ -1,4 +1,4 @@
-class CreateSpreeMollieCheckouts < ActiveRecord::Migration
+class CreateSpreeMollieCheckouts < ActiveRecord::Migration[4.2]
   def change
     create_table :spree_mollie_checkouts do |t|
       t.string   :transaction_id

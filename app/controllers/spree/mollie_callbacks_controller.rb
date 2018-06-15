@@ -1,6 +1,6 @@
 module Spree
   class MollieCallbacksController < Spree::BaseController
-    skip_before_filter :verify_authenticity_token
+    skip_before_action :verify_authenticity_token
 
     def show
       order = Order.find_by(number: params[:id]) || raise(ActiveRecord::RecordNotFound)
@@ -75,11 +75,11 @@ module Spree
         when "paid", "paidout" # The payment has been paid for. The payment has been paid for and we have transferred the sum to your bank account.
           # order.update_attributes({state: "complete", completed_at: Time.now})
           if !order.completed?
-            while order.next!
+            while order.next
               #state_callback(:after)
             end
+            # order.finalize!
           end
-          order.finalize!
 
           payment.source.update_attributes({
             paid_at: mollie_payment.paid_datetime,
