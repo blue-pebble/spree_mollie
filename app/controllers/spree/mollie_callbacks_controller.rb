@@ -52,8 +52,7 @@ module Spree
           Rails.logger.warn "Mollie API call failed: #{e.message}"
         end
       end
-
-      render :text => ""
+      render plain: 'ok'
     end
 
     private
