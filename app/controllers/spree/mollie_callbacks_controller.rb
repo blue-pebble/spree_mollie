@@ -75,11 +75,11 @@ module Spree
         when "paid", "paidout" # The payment has been paid for. The payment has been paid for and we have transferred the sum to your bank account.
           # order.update_attributes({state: "complete", completed_at: Time.now})
           if !order.completed?
-            while order.next!
+            while order.next
               #state_callback(:after)
             end
           end
-          order.finalize!
+          # order.finalize!
 
           payment.source.update_attributes({
             paid_at: mollie_payment.paid_datetime,
