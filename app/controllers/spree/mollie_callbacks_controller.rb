@@ -62,10 +62,12 @@ module Spree
       response = ActiveMerchant::Billing::Response.new(true, mollie_payment.to_yaml, {}, {})
       payment.log_entries.create!(:details => response.to_yaml)
 
-      payment.source.update_attributes({
-        method: mollie_payment.method,
-        status: mollie_payment.status
-      })
+      if payment.source.present?
+        payment.source.update_attributes({
+          method: mollie_payment.method,
+          status: mollie_payment.status
+        })
+      end
       unless payment.completed?
         case mollie_payment.status
         when "open" # The payment has been created, but no other status has been reached yet.
@@ -80,15 +82,19 @@ module Spree
             # order.finalize!
           end
 
-          payment.source.update_attributes({
-            paid_at: mollie_payment.paid_datetime,
-          })
+          if payment.source
+            payment.source.update_attributes({
+              paid_at: mollie_payment.paid_datetime,
+            })
+          end
           payment.complete!
         when "cancelled" # Your customer has cancelled the payment.
           payment.started_processing
-          payment.source.update_attributes({
-            cancelled_at: mollie_payment.cancelled_datetime,
-          })
+          if payment.source
+            payment.source.update_attributes({
+              cancelled_at: mollie_payment.cancelled_datetime,
+            })
+          end
           flash.notice = Spree.t(:payment_has_been_cancelled)
           payment.failure!
         when "pending" # The payment has been started but not yet complete.
@@ -96,9 +102,11 @@ module Spree
           payment.pend! #may already be pending
         when "expired" # The payment has expired, for example, your customer has closed the payment screen.
           payment.started_processing
-          payment.source.update_attributes({
-            expired_at: mollie_payment.expired_datetime,
-          })
+          if payment.source
+            payment.source.update_attributes({
+              expired_at: mollie_payment.expired_datetime,
+            })
+          end
           flash.notice = Spree.t(:payment_has_expired)
           payment.failure!
         else
