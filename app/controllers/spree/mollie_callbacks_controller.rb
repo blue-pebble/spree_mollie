@@ -93,7 +93,7 @@ module Spree
             })
           end
           payment.complete!
-        when "cancelled" # Your customer has cancelled the payment.
+        when "cancelled", "canceled" # Your customer has cancelled the payment.
           payment.started_processing
           if payment.source
             payment.source.update_attributes({
