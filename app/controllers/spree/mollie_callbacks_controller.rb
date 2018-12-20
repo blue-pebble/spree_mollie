@@ -97,7 +97,7 @@ module Spree
           payment.started_processing
           if payment.source
             payment.source.update_attributes({
-              cancelled_at: mollie_payment.cancelled_at,
+              cancelled_at: mollie_payment.canceled_at,
             })
           end
           flash.notice = Spree.t(:payment_has_been_cancelled)
