@@ -76,15 +76,20 @@ module Spree
         when "paid", "paidout" # The payment has been paid for. The payment has been paid for and we have transferred the sum to your bank account.
           # order.update_attributes({state: "complete", completed_at: Time.now})
           if !order.completed?
-            while order.next
-              #state_callback(:after)
+            begin
+              while order.next
+                #state_callback(:after)
+              end
+            rescue Exception => e
+              Rails.logger.warn "Exception completing order! (continue)"
+              Rails.logger.warn e.to_s
+              # order.finalize!
             end
-            # order.finalize!
           end
 
           if payment.source
             payment.source.update_attributes({
-              paid_at: mollie_payment.paid_datetime,
+              paid_at: mollie_payment.paid_at,
             })
           end
           payment.complete!
@@ -92,7 +97,7 @@ module Spree
           payment.started_processing
           if payment.source
             payment.source.update_attributes({
-              cancelled_at: mollie_payment.cancelled_datetime,
+              cancelled_at: mollie_payment.cancelled_at,
             })
           end
           flash.notice = Spree.t(:payment_has_been_cancelled)
@@ -104,7 +109,7 @@ module Spree
           payment.started_processing
           if payment.source
             payment.source.update_attributes({
-              expired_at: mollie_payment.expired_datetime,
+              expired_at: mollie_payment.expired_at,
             })
           end
           flash.notice = Spree.t(:payment_has_expired)
