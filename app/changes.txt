@@ -1,7 +1,9 @@
 - (2018-12-20) Fixed issue with incompatible mollie-api-gem  (Now using V4)
 - (2018-12-19) Fixes to prevent 500 errors, if source isn't present
+- (2018-06-27) Removed finalize! from payment, because it fails
 - (2018-06-15) Removed finalize! from payment, because it fails
 - (2018-06-15) Migated to spree 3.5
+
 - (2018-04-23) Fix for crash undefined method `state_callback' 'for'
 - (2018-04-12) Changed mollie payment complete loop, so callbacks are triggered
 - (2018-03-14) Fix with API key issue (updated Mollie client interface)
