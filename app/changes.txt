@@ -1,3 +1,5 @@
+- (2020-01-20 ) Removed Mollie Payment Step. (Strange view)
+
 - (2019-05-27) Upgraded to spree 3.7
 - (2019-05-27) Added version information
 - (2018-06-15) Removed finalize! from payment, because it fails
